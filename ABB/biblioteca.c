@@ -271,30 +271,59 @@ void devolverLivro(Biblioteca *bib, int id)
 }
 
 /*
- * Função auxiliar para salvar os livros em arquivo.
- * Percorre a árvore em ordem e salva cada livro.
+ * Função auxiliar para armazenar os livros em um vetor em ordem.
+ * Usada para rebalancear a árvore antes de salvar.
  */
-void salvarLivrosRecursivo(Livro *raiz, FILE *arquivo)
+void armazenarLivrosEmOrdem(Livro *raiz, Livro **vetor, int *pos)
 {
   if (raiz != NULL)
   {
-    salvarLivrosRecursivo(raiz->esq, arquivo);
-    fprintf(arquivo, "%d|%s|%s|%d\n", raiz->id, raiz->titulo, raiz->autor, raiz->disponivel);
-    salvarLivrosRecursivo(raiz->dir, arquivo);
+    armazenarLivrosEmOrdem(raiz->esq, vetor, pos);
+    vetor[(*pos)++] = raiz;
+    armazenarLivrosEmOrdem(raiz->dir, vetor, pos);
   }
 }
 
 /*
- * Salva todos os livros em um arquivo.
- * Verifica se o arquivo é válido e chama a função recursiva.
+ * Função auxiliar para salvar os livros de forma balanceada.
+ * Usa divisão e conquista para garantir árvore balanceada.
+ */
+void salvarBalanceadoRecursivo(Livro **vetor, int inicio, int fim, FILE *arquivo)
+{
+  if (inicio <= fim)
+  {
+    int meio = (inicio + fim) / 2;
+    Livro *livro = vetor[meio];
+    fprintf(arquivo, "%d|%s|%s|%d\n", livro->id, livro->titulo, livro->autor, livro->disponivel);
+    salvarBalanceadoRecursivo(vetor, inicio, meio - 1, arquivo);
+    salvarBalanceadoRecursivo(vetor, meio + 1, fim, arquivo);
+  }
+}
+
+/*
+ * Salva os livros de forma balanceada.
+ * Primeiro armazena em um vetor em ordem, depois salva balanceado.
+ */
+void salvarLivrosBalanceado(Livro *raiz, FILE *arquivo)
+{
+  int n = contarLivros(raiz);
+  Livro **vetor = (Livro **)malloc(n * sizeof(Livro *));
+  if (vetor == NULL)
+    return;
+
+  int pos = 0;
+  armazenarLivrosEmOrdem(raiz, vetor, &pos);
+  salvarBalanceadoRecursivo(vetor, 0, n - 1, arquivo);
+  free(vetor);
+}
+
+/*
+ * Salva os livros no arquivo.
+ * Usa salvamento balanceado para manter a árvore balanceada.
  */
 void salvarLivros(Livro *raiz, FILE *arquivo)
 {
-  if (arquivo != NULL)
-  {
-    salvarLivrosRecursivo(raiz, arquivo);
-    printf("Livros salvos com sucesso!\n");
-  }
+  salvarLivrosBalanceado(raiz, arquivo);
 }
 
 /*
@@ -338,56 +367,6 @@ int contarLivros(Livro *raiz)
   if (raiz == NULL)
     return 0;
   return 1 + contarLivros(raiz->esq) + contarLivros(raiz->dir);
-}
-
-/*
- * Armazena os livros em um vetor em ordem.
- * Percorre a árvore em ordem e armazena os ponteiros.
- */
-void armazenarLivrosEmOrdem(Livro *raiz, Livro **vetor, int *pos)
-{
-  if (raiz != NULL)
-  {
-    armazenarLivrosEmOrdem(raiz->esq, vetor, pos);
-    vetor[(*pos)++] = raiz;
-    armazenarLivrosEmOrdem(raiz->dir, vetor, pos);
-  }
-}
-
-/*
- * Função auxiliar para salvar os livros de forma balanceada.
- * Salva os livros em ordem, garantindo que a árvore fique balanceada.
- */
-void salvarBalanceadoRecursivo(Livro **vetor, int inicio, int fim, FILE *arquivo)
-{
-  if (inicio <= fim)
-  {
-    int meio = (inicio + fim) / 2;
-    fprintf(arquivo, "%d|%s|%s|%d\n",
-            vetor[meio]->id,
-            vetor[meio]->titulo,
-            vetor[meio]->autor,
-            vetor[meio]->disponivel);
-    salvarBalanceadoRecursivo(vetor, inicio, meio - 1, arquivo);
-    salvarBalanceadoRecursivo(vetor, meio + 1, fim, arquivo);
-  }
-}
-
-/*
- * Salva os livros de forma balanceada.
- * Cria um vetor com os livros em ordem e os salva de forma
- * que a árvore fique balanceada quando for recarregada.
- */
-void salvarLivrosBalanceado(Livro *raiz, FILE *arquivo)
-{
-  int n = contarLivros(raiz);
-  Livro **vetor = (Livro **)malloc(n * sizeof(Livro *));
-  int pos = 0;
-
-  armazenarLivrosEmOrdem(raiz, vetor, &pos);
-  salvarBalanceadoRecursivo(vetor, 0, n - 1, arquivo);
-
-  free(vetor);
 }
 
 /*

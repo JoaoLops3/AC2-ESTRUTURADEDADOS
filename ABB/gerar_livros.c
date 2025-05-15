@@ -2,7 +2,7 @@
  * gerar_livros.c
  *
  * Gerador de dados de teste para o sistema de biblioteca.
- * Cria um arquivo com livros aleatórios para testar o sistema.
+ * Cria um arquivo com livros balanceados para testar o sistema.
  */
 
 #include <stdio.h>
@@ -102,8 +102,34 @@ char *gerarAutorAleatorio()
 }
 
 /*
+ * Salva os livros de forma balanceada.
+ * Usa divisão e conquista para garantir árvore balanceada.
+ */
+void salvarBalanceado(int inicio, int fim, FILE *arquivo)
+{
+  if (inicio <= fim)
+  {
+    int meio = (inicio + fim) / 2;
+    int id = meio + 1; // IDs de 1 a NUM_LIVROS
+    char *titulo = gerarTituloAleatorio();
+    char *autor = gerarAutorAleatorio();
+
+    if (titulo != NULL && autor != NULL)
+    {
+      fprintf(arquivo, "%d|%s|%s|%d\n", id, titulo, autor, 1);
+      free(titulo);
+      free(autor);
+    }
+
+    // Salva subárvores esquerda e direita
+    salvarBalanceado(inicio, meio - 1, arquivo);
+    salvarBalanceado(meio + 1, fim, arquivo);
+  }
+}
+
+/*
  * Função principal do gerador.
- * Cria um arquivo com livros aleatórios para teste.
+ * Cria um arquivo com livros balanceados para teste.
  */
 int main()
 {
@@ -115,22 +141,10 @@ int main()
     return 1;
   }
 
-  printf("Gerando %d livros para teste...\n", NUM_LIVROS);
+  printf("Gerando %d livros balanceados para teste...\n", NUM_LIVROS);
 
-  for (int i = 0; i < NUM_LIVROS; i++)
-  {
-    int id = i + 1;
-    char *titulo = gerarTituloAleatorio();
-    char *autor = gerarAutorAleatorio();
-    int disponivel = 1;
-
-    if (titulo != NULL && autor != NULL)
-    {
-      fprintf(arquivo, "%d|%s|%s|%d\n", id, titulo, autor, disponivel);
-      free(titulo);
-      free(autor);
-    }
-  }
+  // Salva os livros de forma balanceada
+  salvarBalanceado(0, NUM_LIVROS - 1, arquivo);
 
   fclose(arquivo);
   printf("Arquivo de teste gerado com sucesso!\n");
