@@ -107,24 +107,27 @@ char *gerarAutorAleatorio()
  */
 void salvarBalanceado(int inicio, int fim, FILE *arquivo)
 {
-  if (inicio <= fim)
+  if (inicio > fim)
+    return;
+
+  int meio = (inicio + fim) / 2;
+
+  // Primeiro salva a subárvore esquerda
+  salvarBalanceado(inicio, meio - 1, arquivo);
+
+  // Depois salva o nó atual
+  char *titulo = gerarTituloAleatorio();
+  char *autor = gerarAutorAleatorio();
+
+  if (titulo != NULL && autor != NULL)
   {
-    int meio = (inicio + fim) / 2;
-    int id = meio + 1; // IDs de 1 a NUM_LIVROS
-    char *titulo = gerarTituloAleatorio();
-    char *autor = gerarAutorAleatorio();
-
-    if (titulo != NULL && autor != NULL)
-    {
-      fprintf(arquivo, "%d|%s|%s|%d\n", id, titulo, autor, 1);
-      free(titulo);
-      free(autor);
-    }
-
-    // Salva subárvores esquerda e direita
-    salvarBalanceado(inicio, meio - 1, arquivo);
-    salvarBalanceado(meio + 1, fim, arquivo);
+    fprintf(arquivo, "%d|%s|%s|%d\n", meio + 1, titulo, autor, 1);
+    free(titulo);
+    free(autor);
   }
+
+  // Por fim salva a subárvore direita
+  salvarBalanceado(meio + 1, fim, arquivo);
 }
 
 /*
