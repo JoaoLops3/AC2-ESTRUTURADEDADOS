@@ -273,13 +273,28 @@ void devolverLivro(Biblioteca *bib, int id)
 /*
  * Função auxiliar para armazenar os livros em um vetor em ordem.
  * Usada para rebalancear a árvore antes de salvar.
+ *
+ * Parâmetros:
+ * - raiz: ponteiro para a raiz da árvore
+ * - vetor: vetor que vai armazenar os livros em ordem
+ * - pos: ponteiro para a posição atual no vetor
+ *
+ * Como funciona:
+ * 1. Percorre a árvore em ordem (esquerda -> raiz -> direita)
+ * 2. Coloca cada livro no vetor na ordem correta
+ * 3. Incrementa a posição no vetor
  */
 void armazenarLivrosEmOrdem(Livro *raiz, Livro **vetor, int *pos)
 {
   if (raiz != NULL)
   {
+    // Primeiro percorre a subárvore esquerda
     armazenarLivrosEmOrdem(raiz->esq, vetor, pos);
+
+    // Depois coloca o nó atual no vetor
     vetor[(*pos)++] = raiz;
+
+    // Por fim percorre a subárvore direita
     armazenarLivrosEmOrdem(raiz->dir, vetor, pos);
   }
 }
@@ -287,38 +302,87 @@ void armazenarLivrosEmOrdem(Livro *raiz, Livro **vetor, int *pos)
 /*
  * Função auxiliar para salvar os livros de forma balanceada.
  * Usa divisão e conquista para garantir árvore balanceada.
+ *
+ * Parâmetros:
+ * - vetor: vetor com os livros em ordem
+ * - inicio: índice inicial do intervalo
+ * - fim: índice final do intervalo
+ * - arquivo: arquivo onde os livros serão salvos
+ *
+ * Como funciona:
+ * 1. Pega o elemento do meio do intervalo
+ * 2. Salva esse elemento (será a raiz da subárvore)
+ * 3. Recursivamente salva a subárvore esquerda
+ * 4. Recursivamente salva a subárvore direita
  */
 void salvarBalanceadoRecursivo(Livro **vetor, int inicio, int fim, FILE *arquivo)
 {
   if (inicio <= fim)
   {
+    // Calcula o meio do intervalo
     int meio = (inicio + fim) / 2;
+
+    // Pega o livro do meio
     Livro *livro = vetor[meio];
+
+    // Salva o livro no arquivo
     fprintf(arquivo, "%d|%s|%s|%d\n", livro->id, livro->titulo, livro->autor, livro->disponivel);
+
+    // Salva a subárvore esquerda (elementos menores que o meio)
     salvarBalanceadoRecursivo(vetor, inicio, meio - 1, arquivo);
+
+    // Salva a subárvore direita (elementos maiores que o meio)
     salvarBalanceadoRecursivo(vetor, meio + 1, fim, arquivo);
   }
 }
 
 /*
- * Salva os livros de forma balanceada.
+ * Função principal para salvar os livros de forma balanceada.
  * Primeiro armazena em um vetor em ordem, depois salva balanceado.
+ *
+ * Parâmetros:
+ * - raiz: ponteiro para a raiz da árvore
+ * - arquivo: arquivo onde os livros serão salvos
+ *
+ * Como funciona:
+ * 1. Conta quantos livros existem na árvore
+ * 2. Cria um vetor do tamanho exato
+ * 3. Coloca todos os livros no vetor em ordem
+ * 4. Salva os livros de forma balanceada
+ * 5. Libera a memória do vetor
+ *
+ * Exemplo prático com 7 livros (IDs 1 a 7):
+ * 1. Vetor em ordem: [1, 2, 3, 4, 5, 6, 7]
+ * 2. Árvore balanceada resultante:
+ *          4
+ *         / \
+ *        2   6
+ *       / \ / \
+ *      1  3 5  7
  */
 void salvarLivrosBalanceado(Livro *raiz, FILE *arquivo)
 {
+  // Conta quantos livros existem na árvore
   int n = contarLivros(raiz);
+
+  // Aloca memória para o vetor
   Livro **vetor = (Livro **)malloc(n * sizeof(Livro *));
   if (vetor == NULL)
     return;
 
+  // Preenche o vetor com os livros em ordem
   int pos = 0;
   armazenarLivrosEmOrdem(raiz, vetor, &pos);
+
+  // Salva os livros de forma balanceada
   salvarBalanceadoRecursivo(vetor, 0, n - 1, arquivo);
+
+  // Libera a memória do vetor
   free(vetor);
 }
 
 /*
- * Salva os livros no arquivo.
+ * Função que salva os livros no arquivo.
  * Usa salvamento balanceado para manter a árvore balanceada.
  */
 void salvarLivros(Livro *raiz, FILE *arquivo)

@@ -104,29 +104,62 @@ char *gerarAutorAleatorio()
 /*
  * Salva os livros de forma balanceada.
  * Usa divisão e conquista para garantir árvore balanceada.
+ *
+ * Parâmetros:
+ * - inicio: índice inicial do intervalo
+ * - fim: índice final do intervalo
+ * - arquivo: arquivo onde os livros serão salvos
+ *
+ * Como funciona:
+ * 1. Usa divisão e conquista para garantir que a árvore fique balanceada
+ * 2. Sempre pega o elemento do meio do intervalo como raiz
+ * 3. Recursivamente processa a subárvore esquerda (elementos menores)
+ * 4. Recursivamente processa a subárvore direita (elementos maiores)
+ *
+ * Exemplo com 7 livros (IDs 1 a 7):
+ * 1. Primeira chamada: salvarBalanceado(0, 6)
+ *    - meio = (0 + 6) / 2 = 3
+ *    - Salva o livro 4 (meio + 1, será a raiz)
+ *    - Chama salvarBalanceado(0, 2) para a esquerda
+ *    - Chama salvarBalanceado(4, 6) para a direita
+ *
+ * 2. Árvore resultante:
+ *          4
+ *         / \
+ *        2   6
+ *       / \ / \
+ *      1  3 5  7
+ *
+ * 3. Ordem de salvamento no arquivo:
+ *    - Primeiro salva a subárvore esquerda (1,2,3)
+ *    - Depois salva a raiz (4)
+ *    - Por fim salva a subárvore direita (5,6,7)
  */
 void salvarBalanceado(int inicio, int fim, FILE *arquivo)
 {
+  // Se o intervalo é inválido, retorna
   if (inicio > fim)
     return;
 
+  // Calcula o meio do intervalo (será a raiz da subárvore)
   int meio = (inicio + fim) / 2;
 
-  // Primeiro salva a subárvore esquerda
+  // Primeiro salva a subárvore esquerda (elementos menores que o meio)
   salvarBalanceado(inicio, meio - 1, arquivo);
 
-  // Depois salva o nó atual
+  // Depois salva o nó atual (raiz da subárvore)
   char *titulo = gerarTituloAleatorio();
   char *autor = gerarAutorAleatorio();
 
   if (titulo != NULL && autor != NULL)
   {
+    // Salva o livro no arquivo no formato: id|titulo|autor|disponivel
     fprintf(arquivo, "%d|%s|%s|%d\n", meio + 1, titulo, autor, 1);
     free(titulo);
     free(autor);
   }
 
-  // Por fim salva a subárvore direita
+  // Por fim salva a subárvore direita (elementos maiores que o meio)
   salvarBalanceado(meio + 1, fim, arquivo);
 }
 
