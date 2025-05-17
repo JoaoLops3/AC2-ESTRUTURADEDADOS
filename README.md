@@ -129,6 +129,7 @@ id|titulo|autor|disponivel
 
 ## Observações
 
+- Como foi dito na apresentação, para deixar balanceada tem que usar a opção para salvar, antes de fazer o teste.
 - A implementação em ABB mantém os livros organizados em uma árvore binária de busca
 - A implementação em Lista Dinâmica mantém os livros ordenados por ID
 - Ambas as implementações medem o tempo de execução das operações
